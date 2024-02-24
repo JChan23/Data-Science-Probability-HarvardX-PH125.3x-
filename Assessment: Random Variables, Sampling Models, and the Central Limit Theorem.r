@@ -39,3 +39,68 @@ simulation <- replicate(B, {
 mean(simulation>=8)
 
 
+#The SAT was recently changed to reduce the number of multiple choice options from 5 to 4 and also to eliminate the penalty for guessing.
+#In this two-part question, you'll explore how that affected the expected values for the test.
+
+#2.a. Suppose that the number of multiple choice options is 4 and that there is no penalty for guessing - that is, an incorrect question gives a score of 0.
+#What is the expected value of the score when guessing on this new test?
+point_correct <- 1
+correct_guess <- 1/4
+point_incorrect <- 0
+incorrect_guess <- 1-correct_guess
+mu <- num_questions*(correct_guess*point_correct + incorrect_guess*point_incorrect) #expected value #time by n, now calculating for whole test
+mu
+
+#2.b. Consider a range of correct answer probabilities p <- seq(0.25, 0.95, 0.05) representing a range of student skills.
+#What is the lowest p such that the probability of scoring over 35 exceeds 80%?
+p <- seq(0.25, 0.95, 0.05)
+for (i in 1:length(p)) {
+  mu <- num_questions*(p[i]*point_correct + (1-p[i])*point_incorrect)
+  sigma <- sqrt(num_questions)*abs(point_incorrect-point_correct)*sqrt(p[i]*(1-p[i]))
+  if ((1-pnorm(35, mu, sigma)) > 0.8) {
+    print(p[i])
+    break
+  }
+}
+#alternative method using sapply
+p <- seq(0.25, 0.95, 0.05)
+score <- sapply(p, function(v){
+  mu <- num_questions*(v*point_correct + (1-v)*point_incorrect)
+  sigma <- sqrt(num_questions)*abs(point_incorrect-point_correct)*sqrt(v*(1-v))
+  1-pnorm(35, mu, sigma)
+})
+min(p[which(score > 0.8)])
+
+
+#A casino offers a House Special bet on roulette, which is a bet on five pockets (00, 0, 1, 2, 3) out of 38 total pockets. 
+#The bet pays out 6 to 1. In other words, a losing bet yields -$1 and a successful bet yields $6. 
+#A gambler wants to know the chance of losing money if he places 500 bets on the roulette House Special.
+#The following 7-part question asks you to do some calculations related to this scenario.
+
+#3.a. What is the expected value of the payout for one bet?
+money_win <- 6
+money_lose <- -1
+win <- 5/38
+lose <- 1-win
+mu <- money_win*win + money_lose*lose
+mu
+
+#3.b. What is the standard error of the payout for one bet?
+sigma <- abs(money_lose-money_win)*sqrt(win*lose)
+sigma
+
+#3.c. What is the expected value of the average payout over 500 bets?
+mu #average payout
+
+#3.d. What is the standard error of the average payout over 500 bets?
+num_games <- 500
+sigma/sqrt(num_games)
+
+#3.e. What is the expected value of the sum of 500 bets?
+mu*num_games
+
+#3.f. What is the standard error of the sum of 500 bets?
+sigma*sqrt(num_games)
+
+#3.g. Use pnorm() with the expected value of the sum and standard error of the sum to calculate the probability of losing money over 500 bets, Pr(x <= 0).
+pnorm(0, mu*num_games, sigma*sqrt(num_games))
